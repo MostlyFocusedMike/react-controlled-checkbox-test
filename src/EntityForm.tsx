@@ -66,6 +66,32 @@ export default function EntityForm({ entity }: { entity: Entity }) {
     console.log('formState:', formState);
   }
 
+  const handleClick = (e: React.SyntheticEvent<HTMLInputElement>, permissionType: "VIEW" | "EXECUTE") => {
+    const multiInput = e.target as HTMLInputElement;
+    const newFormState = JSON.parse(JSON.stringify(formState)) as Permission[]
+
+    const matchChecked = (perm: Permission) => {
+      // Turning off main view disables all permissions
+      if (permissionType === 'VIEW' && !multiInput.checked) {
+        perm.isChecked = false;
+      } else if (permissionType === 'VIEW' && perm.type === 'VIEW') {
+        perm.isChecked = true;
+      }
+
+      console.log('perm:', perm);
+      if (permissionType === 'EXECUTE' && perm.type === 'EXECUTE') {
+        perm.isChecked = multiInput.checked;
+      }
+      perm.children.forEach(matchChecked);
+    }
+
+    newFormState.forEach(perm => {
+      matchChecked(perm);
+    })
+    console.log('done:',);
+    setFormState(newFormState)
+  }
+
   const style = {
     display: 'flex',
     alignItems: 'center', gap: '2rem', justifyContent: 'space-around'
@@ -76,11 +102,11 @@ export default function EntityForm({ entity }: { entity: Entity }) {
       <h3 style={{ marginRight: 'auto' }}>{entity.label}</h3>
       <div style={{ display: 'flex' }}>
         <label style={{ width: '26.5rem' }}>
-          <input type="checkbox" ref={viewRef} />
+          <input type="checkbox" ref={viewRef} onClick={(e) => handleClick(e, "VIEW")} />
           View
         </label>
         <label style={{ width: '10rem' }}>
-          <input type="checkbox" ref={executeRef} />
+          <input type="checkbox" ref={executeRef} onClick={(e) => handleClick(e, "EXECUTE")} />
           Execute
         </label>
       </div>
